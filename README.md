@@ -1,4 +1,4 @@
-# sinatra-asset-pipeline
+# padrino-asset-pipeline
 
 An asset pipeline implementation for Sinatra based on [Sprockets](https://github.com/sstephenson/sprockets) with support for CoffeeScript, SASS, SCSS, LESS, ERB as well as CSS (SASS, YUI) and JavaScript (uglifier, YUI, Closure) minification.
 
@@ -9,10 +9,10 @@ sinatra-asset-pipeline supports both compiling assets on the fly for development
 Include sinatra-asset-pipeline in your project's Gemfile:
 
 ```ruby
-gem 'sinatra-asset-pipeline'
+gem 'padrino-asset-pipeline'
 ```
 
-Make sure to add the sinatra-asset-pipeline Rake task in your applications `Rakefile`:
+Make sure to add the padrino-asset-pipeline Rake task in your applications `Rakefile`:
 
 ```ruby
 require 'sinatra/asset_pipeline/task'
@@ -94,7 +94,7 @@ body {
 }
 ```
 
-Note that you don't need to require [sprockets-helpers](https://github.com/petebrowne/sprockets-helpers) inside your code to leverage the functionallity given to you by the integration, sinatra-asset-pipeline handles that for you.
+Note that you don't need to require [sprockets-helpers](https://github.com/petebrowne/sprockets-helpers) inside your code to leverage the functionallity given to you by the integration, padrino-asset-pipeline handles that for you.
 
 ### CSS and JavaScript minification
 
