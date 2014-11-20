@@ -1,12 +1,12 @@
 # padrino-asset-pipeline
 
-An asset pipeline implementation for Sinatra based on [Sprockets](https://github.com/sstephenson/sprockets) with support for CoffeeScript, SASS, SCSS, LESS, ERB as well as CSS (SASS, YUI) and JavaScript (uglifier, YUI, Closure) minification.
+An asset pipeline implementation for Padrino based on [Sprockets](https://github.com/sstephenson/sprockets) with support for CoffeeScript, SASS, SCSS, LESS, ERB as well as CSS (SASS, YUI) and JavaScript (uglifier, YUI, Closure) minification.
 
-sinatra-asset-pipeline supports both compiling assets on the fly for development as well as precompiling assets for production.
+padrino-asset-pipeline supports both compiling assets on the fly for development as well as precompiling assets for production.
 
 # Installation
 
-Include sinatra-asset-pipeline in your project's Gemfile:
+Include padrino-asset-pipeline in your project's Gemfile:
 
 ```ruby
 gem 'padrino-asset-pipeline'
@@ -16,9 +16,9 @@ Make sure to add the padrino-asset-pipeline Rake task in your applications `Rake
 
 ```ruby
 require 'sinatra/asset_pipeline/task'
-require './app'
 
-Sinatra::AssetPipeline::Task.define! App
+Sinatra::AssetPipeline::Task.define!(SampleBlog::App)
+Sinatra::AssetPipeline::Task.define!(SampleBlog::Admin)
 ```
 
 Now, when everything is in place you can precompile assets located in `assets/<asset-type>` with:
@@ -33,55 +33,92 @@ And remove old compiled assets with:
 $ RACK_ENV=production rake assets:clean
 ```
 
-# Example
-
-In its most simple form, you just register the `Sinatra::AssetPipeline` Sinatra extension within your application:
+# Sample Gemfile
 
 ```ruby
-Bundler.require
+source 'https://rubygems.org'
+source 'https://rails-assets.org'
 
-require 'sinatra/asset_pipeline'
+gem 'rake'
 
-class App < Sinatra::Base
-  register Sinatra::AssetPipeline
+gem 'padrino', '0.12.4'
+gem 'padrino-asset-pipeline', :require => 'sinatra/asset_pipeline', :git => 'https://github.com/proudsugar/padrino-asset-pipeline.git'
 
-  get '/' do
-    haml :index
+gem 'compass'
+
+# Bower components
+# Add https://rails-assets.org as the new gem source, then reference any Bower components that you need as gems in the following convention:
+# gem 'rails-assets-BOWER_PACKAGE_NAME'
+gem 'rails-assets-bootstrap-sass-official', '~> 3.3' # contains jquery
+dependency
+
+group :production do
+  gem 'uglifier'
+end
+```
+
+# Example
+
+In its most simple form, you just register the `Sinatra::AssetPipeline`
+Sinatra extension within your applications:
+
+```ruby
+module SampleBlog
+  class App < Padrino::Application
+    # [...]
+    configure do
+      # If your application doesn't follow the defaults you can customize it as follows:
+      # Include these files when precompiling assets
+      set :assets_precompile, %w(application.js application.css jquery.js *.png *.jpg *.svg *.eot *.ttf *.woff)
+      # Logical paths to your assets
+      set :assets_prefix, %w(app/assets)
+      # CSS minification
+      set :assets_css_compressor, :sass
+      # JavaScript minification
+      set :assets_js_compressor, :uglifier
+      register Sinatra::AssetPipeline
+      # Register the AssetPipeline extention, make sure this goes after all customization
+      if defined?(RailsAssets)
+        # Actual Rails Assets integration, everything else is Sprockets
+        RailsAssets.load_paths.each do |path|
+          settings.sprockets.append_path(path)
+        end
+      end
+    end
+
+    get '/' do
+      haml :index
+    end
   end
 end
 ```
 
-However, if your application doesn't follow the defaults you can customize it as follows:
-
 ```ruby
-Bundler.require
-
-require 'sinatra/asset_pipeline'
-
-class App < Sinatra::Base
-  # Include these files when precompiling assets
-  set :assets_precompile, %w(app.js app.css *.png *.jpg *.svg *.eot *.ttf *.woff)
-
-  # Logical paths to your assets
-  set :assets_prefix, %w(assets vendor/assets)
-
-  # Use another host for serving assets
-  set :assets_host, '<id>.cloudfront.net'
-
-  # Serve assets using this protocol
-  set :assets_protocol, :http
-
-  # CSS minification
-  set :assets_css_compressor, :sass
-
-  # JavaScript minification
-  set :assets_js_compressor, :uglifier
-
-  # Register the AssetPipeline extention, make sure this goes after all customization
-  register Sinatra::AssetPipeline
-
-  get '/' do
-    haml :index
+module SampleBlog
+  class Admin < Padrino::Application
+    # [...]
+    configure do
+      # If your application doesn't follow the defaults you can customize it as follows:
+      # Include these files when precompiling assets
+      set :assets_precompile, %w(application.js application.css jquery.js *.png *.jpg *.svg *.eot *.ttf *.woff)
+      # Logical paths to your assets
+      set :assets_prefix, %w(admin/assets)
+      # Public path: affects compilation destination of targets and path
+prefixes
+      set :assets_path, File.join(public_dir, "admin/assets")
+      # CSS minification
+      set :assets_css_compressor, :sass
+      # JavaScript minification
+      set :assets_js_compressor, :uglifier
+      register Sinatra::AssetPipeline
+      # Register the AssetPipeline extention, make sure this goes after all customization
+      if defined?(RailsAssets)
+        # Actual Rails Assets integration, everything else is Sprockets
+        RailsAssets.load_paths.each do |path|
+          settings.sprockets.append_path(path)
+        end
+      end
+    end
   end
 end
 ```
