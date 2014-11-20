@@ -4,6 +4,46 @@ require 'sprockets-helpers'
 
 module Sinatra
   module AssetPipeline
+    module Helpers
+      include Sprockets::Helpers
+
+      def asset_path(source, options = {})
+        uri = URI.parse(source)
+        return source if uri.absolute?
+
+        path = super
+
+        prefix = settings.assets_path
+          .sub(File.join(Padrino.root, 'public'), '')
+          .sub(settings.path_prefix || Sprockets::Helpers.prefix, '')
+
+        if path.is_a?(Array)
+          ([] << prefix << path).flatten
+        else
+          prefix + path
+        end
+      end
+
+      def assets_environment
+        settings.sprockets
+      end
+
+      def find_asset_path(uri, options = {})
+        if settings.assets_manifest && options[:manifest] != false
+          manifest_path = settings.assets_manifest.assets[uri.path]
+          if manifest_path
+            return Sprockets::Helpers::ManifestPath.new(uri, manifest_path, options)
+          end
+        end
+
+        assets_environment.resolve(uri.path) do |path|
+          return Sprockets::Helpers::AssetPath.new(uri, assets_environment[path], options)
+        end
+
+        return Sprockets::Helpers::FilePath.new(uri, options)
+      end
+    end
+
     def self.registered(app)
       app.set_default :sprockets, Sprockets::Environment.new
       app.set_default :assets_precompile, %w(app.js app.css *.png *.jpg *.svg *.eot *.ttf *.woff)
@@ -15,6 +55,7 @@ module Sinatra
       app.set_default :assets_host, nil
       app.set_default :assets_digest, true
       app.set_default :assets_debug, false
+      app.set_default :assets_manifest, nil
       app.set_default :path_prefix, nil
 
       app.set :static, :true
@@ -35,10 +76,12 @@ module Sinatra
       end
 
       app.configure :staging, :production do
+        manifest = Sprockets::Manifest.new(app.sprockets, app.assets_path)
         Sprockets::Helpers.configure do |config|
-          config.manifest = Sprockets::Manifest.new(app.sprockets, app.assets_path)
+          config.manifest = manifest
           config.prefix = app.path_prefix unless app.path_prefix.nil?
         end
+        app.set :assets_manifest, manifest
       end
 
       app.configure :production do
@@ -52,10 +95,10 @@ module Sinatra
         end
       end
 
-      app.helpers Sprockets::Helpers
+      app.helpers Helpers
 
       app.configure :test, :development do
-        app.get "#{Sprockets::Helpers.prefix}/*" do |path|
+        app.get "#{app.path_prefix || Sprockets::Helpers.prefix}/:path" do |path|
           env_sprockets = request.env.dup
           env_sprockets['PATH_INFO'] = path
           settings.sprockets.call env_sprockets
