@@ -1,8 +1,8 @@
 # padrino-asset-pipeline
 
-An asset pipeline implementation for Padrino based on [Sprockets](https://github.com/sstephenson/sprockets) with support for CoffeeScript, SASS, SCSS, LESS, ERB as well as CSS (SASS, YUI) and JavaScript (uglifier, YUI, Closure) minification.
+An asset pipeline implementation for Padrino based on [Sprockets](https://github.com/sstephenson/sprockets), **working for Padrino multi-apps**, with support for CoffeeScript, SASS, SCSS, LESS, ERB as well as CSS (SASS, YUI) and JavaScript (uglifier, YUI, Closure) minification.
 
-padrino-asset-pipeline supports both compiling assets on the fly for development as well as precompiling assets for production.
+padrino-asset-pipeline is a fork of [sinatra-asset-pipeline](https://github.com/kalasjocke/sinatra-asset-pipeline) and supports both compiling assets on the fly for development as well as precompiling assets for production.
 
 # Installation
 
@@ -49,18 +49,17 @@ gem 'compass'
 # Bower components
 # Add https://rails-assets.org as the new gem source, then reference any Bower components that you need as gems in the following convention:
 # gem 'rails-assets-BOWER_PACKAGE_NAME'
-gem 'rails-assets-bootstrap-sass-official', '~> 3.3' # contains jquery
-dependency
+gem 'rails-assets-bootstrap-sass-official', '~> 3.3' # contains jquery dependency
 
 group :production do
   gem 'uglifier'
 end
 ```
 
-# Example
+# Example of Padrino Sub-Apps
 
 In its most simple form, you just register the `Sinatra::AssetPipeline`
-Sinatra extension within your applications:
+Padrino extension within your applications:
 
 ```ruby
 module SampleBlog
@@ -103,8 +102,7 @@ module SampleBlog
       set :assets_precompile, %w(application.js application.css jquery.js *.png *.jpg *.svg *.eot *.ttf *.woff)
       # Logical paths to your assets
       set :assets_prefix, %w(admin/assets)
-      # Public path: affects compilation destination of targets and path
-prefixes
+      # Public path: affects compilation destination of targets and path prefixes
       set :assets_path, File.join(public_dir, "admin/assets")
       # CSS minification
       set :assets_css_compressor, :sass
