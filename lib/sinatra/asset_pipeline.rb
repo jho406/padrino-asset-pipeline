@@ -15,7 +15,7 @@ module Sinatra
 
         prefix = settings.assets_path
           .sub(File.join(Padrino.root, 'public'), '')
-          .sub(settings.path_prefix || Sprockets::Helpers.prefix, '')
+          .sub(settings.path_prefix.to_s, '')
 
         if path.is_a?(Array)
           ([] << prefix << path).flatten
@@ -29,6 +29,8 @@ module Sinatra
       end
 
       def find_asset_path(uri, options = {})
+        options = options.merge(prefix: settings.path_prefix)
+
         if settings.assets_manifest && options[:manifest] != false
           manifest_path = settings.assets_manifest.assets[uri.path]
           if manifest_path
@@ -98,7 +100,7 @@ module Sinatra
       app.helpers Helpers
 
       app.configure :test, :development do
-        app.get "#{app.path_prefix || Sprockets::Helpers.prefix}/:path" do |path|
+        app.get "#{app.path_prefix.to_s}/:path" do |path|
           env_sprockets = request.env.dup
           env_sprockets['PATH_INFO'] = path
           settings.sprockets.call env_sprockets
