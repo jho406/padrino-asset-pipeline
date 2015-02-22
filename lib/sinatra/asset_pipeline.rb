@@ -59,6 +59,7 @@ module Sinatra
       app.set_default :assets_debug, false
       app.set_default :assets_manifest, nil
       app.set_default :path_prefix, nil
+      app.set_default :url_prefix, 'assets'
 
       app.set :static, :true
       app.set :static_cache_control, [:public, :max_age => 60 * 60 * 24 * 365]
@@ -81,7 +82,7 @@ module Sinatra
         manifest = Sprockets::Manifest.new(app.sprockets, app.assets_path)
         Sprockets::Helpers.configure do |config|
           config.manifest = manifest
-          config.prefix = app.path_prefix unless app.path_prefix.nil?
+          # config.prefix = app.path_prefix unless app.path_prefix.nil?
         end
         app.set :assets_manifest, manifest
       end
@@ -100,7 +101,7 @@ module Sinatra
       app.helpers Helpers
 
       app.configure :test, :development do
-        app.get "#{app.path_prefix.to_s}/:path" do |path|
+        app.get "#{app.url_prefix.to_s}/:path" do |path|
           env_sprockets = request.env.dup
           env_sprockets['PATH_INFO'] = path
           settings.sprockets.call env_sprockets
