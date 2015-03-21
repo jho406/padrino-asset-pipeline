@@ -4,6 +4,9 @@ require 'sprockets-helpers'
 
 module Sinatra
   module AssetPipeline
+    class App < ::Sinatra::Base
+    end
+
     module Helpers
       include Sprockets::Helpers
 
@@ -101,10 +104,12 @@ module Sinatra
       app.helpers Helpers
 
       app.configure :test, :development do
-        app.get "#{app.url_prefix.to_s}/:path" do |path|
+        puts app.url_prefix.to_s
+        App.get "#{app.url_prefix.to_s}/:path" do |path|
+          puts path
           env_sprockets = request.env.dup
           env_sprockets['PATH_INFO'] = path
-          settings.sprockets.call env_sprockets
+          app.settings.sprockets.call env_sprockets
         end
       end
     end
